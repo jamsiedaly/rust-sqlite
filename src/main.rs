@@ -1,7 +1,5 @@
 use anyhow::{bail, Result};
-use std::fs::File;
-use std::io::Read;
-use std::os::unix::fs::FileExt;
+use std::fs::read;
 
 fn main() -> Result<()> {
     let args = std::env::args().collect::<Vec<_>>();
@@ -14,9 +12,9 @@ fn main() -> Result<()> {
     let command = &args[2];
     match command.as_str() {
         ".dbinfo" => {
-            let mut file = File::open(&args[1])?;
-            let mut header = [0; 100];
-            file.read_exact(&mut header)?;
+            let data = read(&args[1])?;
+            let header = &data[0..100];
+            let _other = &data[100..];
 
             // The page size is stored at the 16th byte offset, using 2 bytes in big-endian order
             let page_size = u16::from_be_bytes([header[16], header[17]]);
@@ -25,9 +23,6 @@ fn main() -> Result<()> {
                 1 => "UTF-8",
                 _ => bail!("Unsupported encoding"),
             };
-
-            let mut first_page = vec![0; page_size as usize];
-            file.read_exact_at(&mut first_page, 100)?;
 
             // You can use print statements as follows for debugging, they'll be visible when running tests.
             println!("Logs from your program will appear here!");
