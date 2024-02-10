@@ -14,9 +14,8 @@ fn main() -> Result<()> {
         ".dbinfo" => {
             let data = read(&args[1])?;
             let header = &data[0..100];
-            let _other = &data[100..];
+            let other = &data[100..];
 
-            // The page size is stored at the 16th byte offset, using 2 bytes in big-endian order
             let page_size = u16::from_be_bytes([header[16], header[17]]);
 
             let encoding = match u32::from_be_bytes(header[56..60].try_into().expect("Invalid encoding")) {
@@ -24,12 +23,11 @@ fn main() -> Result<()> {
                 _ => bail!("Unsupported encoding"),
             };
 
-            // You can use print statements as follows for debugging, they'll be visible when running tests.
-            println!("Logs from your program will appear here!");
+            let table_count = u16::from_be_bytes([other[3], other[4]]);
 
-            // Uncomment this block to pass the first stage
             println!("database page size: {}", page_size);
             println!("encoding: {}", encoding);
+            println!("number of tables: {}", table_count);
         }
         _ => bail!("Missing or invalid command passed: {}", command),
     }
